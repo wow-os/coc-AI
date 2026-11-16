@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101426">
+<title>COC AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101426;color:white;font-family:Arial,sans-serif}
+header{padding:25px;background:#19213b;text-align:center}
+h1{color:#8da8ff;margin:0}
+main{max-width:650px;margin:auto;padding:20px}
+.card{background:#1b2541;border:1px solid #394768;border-radius:16px;padding:18px;margin:15px 0}
+#chat{height:350px;overflow:auto}
+.msg{padding:12px;margin:10px 0;border-radius:12px;background:#293655}
+.user{background:#344b79;text-align:right}
+input,button{padding:14px;border-radius:10px;border:0;font-size:16px}
+input{width:100%;background:#293655;color:white;margin:8px 0}
+button{background:#637ff5;color:white;font-weight:bold;cursor:pointer}
+.actions{display:flex;gap:8px}
+.actions button{flex:1}
+small{color:#aab7d5}
+</style>
+</head>
+<body>
+<header>
+<h1>🤖 COC AI</h1>
+<p>Tu asistente estratégico inteligente</p>
+</header>
+<main>
+<div class="card">
+<h3>🧠 Centro de inteligencia</h3>
+<p>Estoy aquí para pensar contigo, analizar tus ideas y proponer estrategias.</p>
+<small>Versión inicial en desarrollo</small>
+</div>
+<div class="card">
+<h3>💬 Conversación</h3>
+<div id="chat">
+<div class="msg">¡Hola! Soy COC AI. ¿Qué estrategia vamos a trabajar hoy?</div>
+</div>
+<input id="message" placeholder="Escribe tu instrucción...">
+<div class="actions">
+<button onclick="send()">Enviar</button>
+<button onclick="clearChat()">Limpiar</button>
+</div>
+</div>
+<div class="card">
+<h3>🎯 Mi objetivo</h3>
+<p id="goal">Ayudarte a mejorar tu aldea y tus estrategias.</p>
+</div>
+</main>
+<script>
+const chat=document.getElementById("chat");
+const input=document.getElementById("message");
+
+function addMessage(text,cls){
+const div=document.createElement("div");
+div.className="msg "+cls;
+div.textContent=text;
+chat.appendChild(div);
+chat.scrollTop=chat.scrollHeight;
+}
+
+function send(){
+const text=input.value.trim();
+if(!text)return;
+addMessage(text,"user");
+let answer="Analicemos tu idea. ¿Qué objetivo quieres conseguir y qué recursos tenemos disponibles? También podemos estudiar alternativas antes de decidir.";
+const lower=text.toLowerCase();
+if(lower.includes("mejorar"))
+answer="Mi propuesta es priorizar las mejoras según su utilidad, coste y tiempo. Cuéntame tu nivel de ayuntamiento y lo analizamos.";
+else if(lower.includes("hola"))
+answer="¡Hola! Estoy lista para trabajar contigo. ¿Cuál es nuestro primer objetivo?";
+else if(lower.includes("idea"))
+answer="Cuéntame tu idea. Voy a analizar sus ventajas, posibles problemas y cómo podemos mejorarla.";
+addMessage(answer,"");
+let history=JSON.parse(localStorage.getItem("coc_history")||"[]");
+history.push({user:text,assistant:answer});
+localStorage.setItem("coc_history",JSON.stringify(history));
+input.value="";
+}
+
+function clearChat(){
+chat.innerHTML="";
+localStorage.removeItem("coc_history");
+addMessage("Conversación nueva. ¿Qué vamos a planificar?","");
+}
+
+const history=JSON.parse(localStorage.getItem("coc_history")||"[]");
+history.forEach(item=>{
+addMessage(item.user,"user");
+addMessage(item.assistant,"");
+});
+</script>
+</body>
+</html>
