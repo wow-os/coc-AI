@@ -5,56 +5,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101426">
-<title>COC AI</title>
+<title>COC AI 2.0</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#101426;color:white;font-family:Arial,sans-serif}
-header{padding:25px;background:#19213b;text-align:center}
-h1{color:#8da8ff;margin:0}
-main{max-width:650px;margin:auto;padding:20px}
+header{padding:25px 15px;background:#19213b;text-align:center}
+h1{color:#8da8ff;margin:0;font-size:32px}
+header p{color:#c4cde5}
+main{max-width:650px;margin:auto;padding:16px}
 .card{background:#1b2541;border:1px solid #394768;border-radius:16px;padding:18px;margin:15px 0}
-#chat{height:350px;overflow:auto}
-.msg{padding:12px;margin:10px 0;border-radius:12px;background:#293655}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{padding:13px;border:0;border-radius:10px;background:#34415f;color:white;font-size:15px;font-weight:bold;cursor:pointer}
+button.active{background:#637ff5}
+#modeDescription{color:#aab7d5;line-height:1.5}
+#chat{height:350px;overflow-y:auto;padding:5px}
+.msg{padding:13px;margin:10px 0;border-radius:12px;background:#293655;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
 .user{background:#344b79;text-align:right}
-input,button{padding:14px;border-radius:10px;border:0;font-size:16px}
-input{width:100%;background:#293655;color:white;margin:8px 0}
-button{background:#637ff5;color:white;font-weight:bold;cursor:pointer}
+input{width:100%;padding:15px;border-radius:10px;border:1px solid #394768;background:#293655;color:white;font-size:16px;margin:10px 0}
+input::placeholder{color:#aab7d5}
 .actions{display:flex;gap:8px}
 .actions button{flex:1}
+.send{background:#637ff5}
+.clear{background:#394768}
 small{color:#aab7d5}
+footer{text-align:center;padding:20px;color:#8996b8;font-size:13px}
 </style>
 </head>
 <body>
 <header>
 <h1>🤖 COC AI</h1>
-<p>Tu asistente estratégico inteligente</p>
+<p>Tu cerebro estratégico inteligente</p>
 </header>
 <main>
 <div class="card">
-<h3>🧠 Centro de inteligencia</h3>
-<p>Estoy aquí para pensar contigo, analizar tus ideas y proponer estrategias.</p>
-<small>Versión inicial en desarrollo</small>
+<h3>🧠 Selecciona tu inteligencia</h3>
+<div class="modes">
+<button id="generalBtn" class="active" onclick="changeMode('general')">🧠 Cerebro general</button>
+<button id="cocBtn" onclick="changeMode('coc')">⚔️ Especialista COC</button>
+</div>
+<p id="modeDescription">Analizo ideas, resuelvo problemas y te ayudo a planificar.</p>
 </div>
 <div class="card">
 <h3>💬 Conversación</h3>
-<div id="chat">
-<div class="msg">¡Hola! Soy COC AI. ¿Qué estrategia vamos a trabajar hoy?</div>
-</div>
-<input id="message" placeholder="Escribe tu instrucción...">
+<div id="chat"></div>
+<input id="message" placeholder="Escribe tu mensaje..." autocomplete="off">
 <div class="actions">
-<button onclick="send()">Enviar</button>
-<button onclick="clearChat()">Limpiar</button>
+<button class="send" onclick="send()">Enviar</button>
+<button class="clear" onclick="clearChat()">Limpiar</button>
 </div>
 </div>
 <div class="card">
-<h3>🎯 Mi objetivo</h3>
-<p id="goal">Ayudarte a mejorar tu aldea y tus estrategias.</p>
+<h3>🎯 Objetivo actual</h3>
+<p id="goal">Desarrollar inteligencia y estrategias.</p>
+</div>
+<div class="card">
+<h3>🚀 Desarrollo de COC AI</h3>
+<p>Versión 2.0</p>
+<small>Dos modos inteligentes en una misma plataforma.</small>
 </div>
 </main>
+<footer>COC AI · Proyecto en desarrollo</footer>
 <script>
 const chat=document.getElementById("chat");
 const input=document.getElementById("message");
-
+let mode="general";
+let histories;
+try{
+histories=JSON.parse(localStorage.getItem("coc_histories"))||{general:[],coc:[]};
+}catch(e){
+histories={general:[],coc:[]};
+}
+if(!Array.isArray(histories.general))histories.general=[];
+if(!Array.isArray(histories.coc))histories.coc=[];
+function save(){
+localStorage.setItem("coc_histories",JSON.stringify(histories));
+}
 function addMessage(text,cls){
 const div=document.createElement("div");
 div.className="msg "+cls;
@@ -62,39 +87,63 @@ div.textContent=text;
 chat.appendChild(div);
 chat.scrollTop=chat.scrollHeight;
 }
-
+function changeMode(selected){
+mode=selected;
+document.getElementById("generalBtn").classList.toggle("active",mode==="general");
+document.getElementById("cocBtn").classList.toggle("active",mode==="coc");
+document.getElementById("modeDescription").textContent=mode==="general"?"Analizo ideas, resuelvo problemas y te ayudo a planificar.":"Especialista en Clash of Clans: ataques, tropas, aldeas y mejoras.";
+document.getElementById("goal").textContent=mode==="general"?"Pensar, analizar y encontrar soluciones.":"Mejorar tu aldea y dominar las estrategias de Clash of Clans.";
+renderHistory();
+addMessage(mode==="general"?"🧠 Cerebro general activado. ¿Qué vamos a analizar?":"⚔️ Especialista COC activado. ¿Qué ayuntamiento tienes y qué quieres mejorar?","");
+}
+function renderHistory(){
+chat.innerHTML="";
+histories[mode].forEach(item=>{
+addMessage(item.user,"user");
+addMessage(item.assistant,"");
+});
+}
+function generalBrain(text){
+const t=text.toLowerCase();
+if(t.includes("hola"))return "¡Hola! Soy COC AI. Estoy preparado para analizar ideas, resolver problemas y trabajar contigo.";
+if(t.includes("idea"))return "Cuéntame todos los detalles de tu idea. Analizaré sus ventajas, dificultades y oportunidades de mejora.";
+if(t.includes("plan"))return "Vamos a crear un plan. Primero definiremos el objetivo, después los recursos y finalmente los pasos necesarios.";
+if(t.includes("problema"))return "Vamos a estudiar el problema. Identificaremos la causa, las posibles soluciones y cuál puede ser la mejor opción.";
+if(t.includes("estrategia"))return "Una buena estrategia necesita un objetivo claro, planificación, recursos y capacidad de adaptación. ¿Qué queremos conseguir?";
+return "He recibido tu planteamiento. Vamos a analizarlo paso a paso: objetivo, información disponible, posibles soluciones y mejor decisión. Dame más detalles para profundizar.";
+}
+function clashSpecialist(text){
+const t=text.toLowerCase();
+if(t.includes("ayuntamiento")||t.includes("th"))return "🏰 MODO ALDEA\n\nPara recomendarte mejoras necesito conocer tu nivel de Ayuntamiento, tus defensas principales y tus tropas más desarrolladas.";
+if(t.includes("ataque")||t.includes("atacar"))return "⚔️ ANÁLISIS DE ATAQUE\n\nPara preparar una estrategia dime:\n\n1. Tu nivel de Ayuntamiento.\n2. Las tropas y héroes disponibles.\n3. El tipo de aldea enemiga.\n4. Si buscas estrellas o recursos.";
+if(t.includes("tropas")||t.includes("ejercito"))return "🛡️ ANÁLISIS DE EJÉRCITO\n\nPodemos estudiar la composición, el equilibrio entre tropas, los hechizos y la estrategia de ataque. ¿Cuál es tu Ayuntamiento?";
+if(t.includes("aldea")||t.includes("defensa"))return "🏰 DEFENSA DE ALDEA\n\nPodemos analizar la distribución, protección de recursos, defensas y puntos débiles. Cuéntame tu nivel de Ayuntamiento.";
+if(t.includes("heroe")||t.includes("héroe"))return "👑 ANÁLISIS DE HÉROES\n\nPodemos estudiar sus niveles, habilidades, equipamiento y utilidad dentro de tus ataques.";
+if(t.includes("mejorar"))return "📈 PLAN DE MEJORAS\n\nPodemos organizar tus mejoras según su importancia, coste y tiempo. ¿Qué nivel de Ayuntamiento tienes?";
+return "⚔️ COC AI ESPECIALISTA\n\nEstoy preparado para estudiar tu aldea, ataques, tropas, héroes y mejoras.\n\nDime tu nivel de Ayuntamiento y qué objetivo quieres conseguir.";
+}
 function send(){
 const text=input.value.trim();
 if(!text)return;
 addMessage(text,"user");
-let answer="Analicemos tu idea. ¿Qué objetivo quieres conseguir y qué recursos tenemos disponibles? También podemos estudiar alternativas antes de decidir.";
-const lower=text.toLowerCase();
-if(lower.includes("mejorar"))
-answer="Mi propuesta es priorizar las mejoras según su utilidad, coste y tiempo. Cuéntame tu nivel de ayuntamiento y lo analizamos.";
-else if(lower.includes("hola"))
-answer="¡Hola! Estoy lista para trabajar contigo. ¿Cuál es nuestro primer objetivo?";
-else if(lower.includes("idea"))
-answer="Cuéntame tu idea. Voy a analizar sus ventajas, posibles problemas y cómo podemos mejorarla.";
+const answer=mode==="general"?generalBrain(text):clashSpecialist(text);
 addMessage(answer,"");
-let history=JSON.parse(localStorage.getItem("coc_history")||"[]");
-history.push({user:text,assistant:answer});
-localStorage.setItem("coc_history",JSON.stringify(history));
+histories[mode].push({user:text,assistant:answer});
+save();
 input.value="";
+input.focus();
 }
-
 function clearChat(){
+histories[mode]=[];
+save();
 chat.innerHTML="";
-localStorage.removeItem("coc_history");
-addMessage("Conversación nueva. ¿Qué vamos a planificar?","");
+addMessage("Conversación nueva. ¿Qué vamos a trabajar?","");
 }
-
-const history=JSON.parse(localStorage.getItem("coc_history")||"[]");
-history.forEach(item=>{
-addMessage(item.user,"user");
-addMessage(item.assistant,"");
+input.addEventListener("keydown",function(e){
+if(e.key==="Enter")send();
 });
+renderHistory();
+addMessage("¡Hola! Soy COC AI. Elige un modo y dime qué quieres trabajar.","");
 </script>
 </body>
 </html>
-
-
